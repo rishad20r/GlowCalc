@@ -1,0 +1,411 @@
+body {
+  background: #b3d9ff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  font-family: sans-serif;
+  transition: background 0.3s ease;
+}
+
+body.dark {
+  background: #1a1a2e;
+}
+
+#wrapper {
+  position: relative;
+  display: flex;
+}
+
+#cal-body {
+  width: 380px;
+  border-radius: 20px;
+  background: #82b3e0;
+  box-shadow: -8px -8px 20px rgba(255,255,255,0.6), 8px 8px 20px rgba(0,0,0,0.2);
+  padding: 35px 30px 30px 30px;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 2;
+}
+
+body.dark #cal-body {
+  background: #16213e;
+  box-shadow: -8px -8px 20px rgba(255,255,255,0.1), 8px 8px 20px rgba(0,0,0,0.5);
+}
+
+.input input {
+  height: 70px;
+  width: 100%;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: inset -5px -5px 9px rgba(255,255,255,0.6),
+              inset 5px 5px 9px rgba(0,0,0,0.1);
+  border: 0;
+  color: rgb(50, 50, 50);
+  font-size: 2.2rem;
+  padding: 0 20px;
+  box-sizing: border-box;
+  text-align: left;
+  transition: all 0.3s ease;
+}
+
+body.dark .input input {
+  background: #0f1419;
+  color: #ffffff;
+  box-shadow: inset -5px -5px 9px rgba(255,255,255,0.1),
+              inset 5px 5px 9px rgba(0,0,0,0.4);
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.buttons button {
+  cursor: pointer;
+  height: 60px;
+  width: 60px;
+  border: 0;
+  font-size: 1.5rem;
+  border-radius: 50px;
+  background: #ffffff;
+  box-shadow: -5px -5px 10px rgba(255,255,255,0.6),
+               5px 5px 10px rgba(0,0,0,0.2);
+  color: rgb(50, 50, 50);
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark .buttons button {
+  background: #0f1419;
+  color: #ffffff;
+  box-shadow: -5px -5px 10px rgba(255,255,255,0.1),
+               5px 5px 10px rgba(0,0,0,0.4);
+}
+
+.buttons button:active {
+  transform: scale(0.95);
+}
+
+/* Hover effects for number buttons (0-9) */
+button[value="0"]:hover,
+button[value="1"]:hover,
+button[value="2"]:hover,
+button[value="3"]:hover,
+button[value="4"]:hover,
+button[value="5"]:hover,
+button[value="6"]:hover,
+button[value="7"]:hover,
+button[value="8"]:hover,
+button[value="9"]:hover,
+.buttons button:not([value]):hover {
+  background: #00ffff !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(0, 255, 255, 0.7) !important;
+}
+
+/* Scientific function buttons (keep same color) */
+button[value="π"]:hover,
+button[value="^"]:hover,
+button[value="ln"]:hover,
+button[value="log"]:hover,
+button[value="√"]:hover,
+button[value="tan"]:hover,
+button[value="cos"]:hover,
+button[value="sin"]:hover {
+  background: #ff9933 !important;
+  box-shadow: 0 0 12px rgba(255, 153, 51, 0.7) !important;
+  color: white !important;
+}
+
+/* Individual unique colors for other buttons */
+button[value="←"]:hover {
+  background: #cc6600 !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(204, 102, 0, 0.7) !important;
+}
+
+button[value="C"]:hover {
+  background: #ff1a1a !important;
+  color: white !important;
+  box-shadow: 0 0 14px rgba(255, 26, 26, 0.9) !important;
+}
+
+button[value="H"]:hover {
+  background: #0d15ff !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(51, 153, 255, 0.7) !important;
+}
+
+.equal-button:hover {
+  background: #33cc33 !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(51, 204, 51, 0.7) !important;
+}
+
+button[value="/"]:hover {
+  background: #6a5acd !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(106, 90, 205, 0.7) !important;
+}
+
+button[value="*"]:hover {
+  background: #801818 !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(178, 34, 34, 0.7) !important;
+}
+
+button[value="-"]:hover {
+  background: #2e8b57 !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(46, 139, 87, 0.7) !important;
+}
+
+button[value="+"]:hover {
+  background: #a90ea9 !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(171, 44, 171, 0.7) !important;
+}
+
+button[value="."]:hover {
+  background: #ff8c00 !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(255, 140, 0, 0.7) !important;
+}
+
+button[value="()"]:hover {
+  background: #9932cc !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(153, 50, 204, 0.7) !important;
+}
+
+.equal-button {
+  flex: 2;
+  margin: 0 10px;
+  border-radius: 30px;
+}
+
+#scientific-section {
+  display: none;
+  margin-top: 20px;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+
+body.dark #history-panel {
+  background: #16213e;
+  box-shadow: -4px -4px 8px rgba(255,255,255,0.1),
+               4px 4px 8px rgba(0,0,0,0.5);
+}
+
+
+
+#history-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 60%;
+  width: 190px;
+  background: #82b3e0;
+  box-shadow: -4px -4px 8px rgba(255,255,255,0.6),
+               4px 4px 8px rgba(0,0,0,0.2);
+  border-radius: 20px;
+  transform: translateX(0); /* Hidden to the left */
+  transition: transform 0.4s ease; /* Slide animation */
+  padding: 20px 15px;
+  box-sizing: border-box;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: auto;
+}
+
+#history-panel.open {
+  transform: translateX(-100%); /* Slides in */
+}
+
+
+
+
+
+
+#history-panel h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  padding-bottom: 5px;
+  border-bottom: 1px solid rgba(255,255,255,0.4);
+  width: 100%;
+  text-align: center;
+}
+
+#history-list {
+  color: #fff;
+  font-size: 1rem;
+  text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#history-list div {
+  background: rgba(255,255,255,0.15);
+  padding: 6px 8px;
+  border-radius: 8px;
+  word-break: break-word;
+}
+
+#clear-history {
+  margin-top: auto;
+  height: 40px;
+  width: 40px;
+  border: 0;
+  font-size: 1.2rem;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: -4px -4px 8px rgba(255,255,255,0.6),
+              4px 4px 8px rgba(0,0,0,0.2);
+  color: #ff1a1a;
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark #clear-history {
+  background: #0f1419;
+  color: #ff6666;
+  box-shadow: -4px -4px 8px rgba(255,255,255,0.1),
+              4px 4px 8px rgba(0,0,0,0.4);
+}
+
+#clear-history:hover {
+  background: #dc143c !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(220, 20, 60, 0.9) !important;
+  transform: scale(1.1);
+}
+
+.toggle-wrapper {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 10px;
+}
+
+#toggle-scientific {
+  flex: 2;
+  height: 60px;
+  font-size: 1rem;
+  border: none;
+  border-radius: 30px;
+  background: #ffffff;
+  box-shadow: -5px -5px 9px rgba(255,255,255,0.6),
+               5px 5px 9px rgba(0,0,0,0.2);
+  color: rgb(50, 50, 50);
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  margin: 0 10px;
+}
+
+body.dark #toggle-scientific {
+  background: #0f1419;
+  color: #ffffff;
+  box-shadow: -5px -5px 9px rgba(255,255,255,0.1),
+               5px 5px 9px rgba(0,0,0,0.4);
+}
+
+#toggle-scientific:hover {
+  background: #33cccc !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(51, 204, 204, 0.7) !important;
+}
+
+#history-button {
+  width: 60px;
+  height: 60px;
+  font-size: 1.3rem;
+  border: none;
+  border-radius: 50px;
+  background: #ffffff;
+  box-shadow: -5px -5px 9px rgba(255,255,255,0.6),
+               5px 5px 9px rgba(0,0,0,0.2);
+  color: rgb(50, 50, 50);
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body.dark #history-button {
+  background: #0f1419;
+  color: #ffffff;
+  box-shadow: -5px -5px 9px rgba(255,255,255,0.1),
+               5px 5px 9px rgba(0,0,0,0.4);
+}
+
+#history-button:hover {
+  background: #371dff !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(10, 54, 247, 0.7) !important;
+}
+
+/* Dark/Light mode toggle button - different colors for moon vs sun */
+#theme-toggle {
+  height: 60px;
+  width: 60px;
+  border: none;
+  border-radius: 50px;
+  background: #ffffff;
+  box-shadow: -5px -5px 9px rgba(255,255,255,0.6),
+               5px 5px 9px rgba(0,0,0,0.2);
+  color: rgb(50, 50, 50);
+  cursor: pointer;
+  transition: background 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.dark #theme-toggle {
+  background: #0f1419;
+  color: #ffffff;
+  box-shadow: -5px -5px 9px rgba(255,255,255,0.1),
+               5px 5px 9px rgba(0,0,0,0.4);
+}
+
+/* Moon button (light mode) - hover to black */
+#theme-toggle:hover {
+  background: #000000 !important;
+  color: white !important;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Sun button (dark mode) - hover to white */
+body.dark #theme-toggle:hover {
+  background: #ffffff !important;
+  color: black !important;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.7) !important;
+}
+
+/* Shake animation */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-5px); }
+  80% { transform: translateX(5px); }
+  100% { transform: translateX(0); }
+}
+
+.shake {
+  animation: shake 0.4s ease;
+}
