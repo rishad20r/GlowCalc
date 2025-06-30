@@ -1,4 +1,4 @@
-const cacheName = "neon-calculator-v1";
+const cacheName = "GlowCalc-v1";
 const assets = [
   "./",
   "./index.html",
