@@ -1,6 +1,6 @@
 {
-  "name": "Neon Calculator",
-  "short_name": "Calculator",
+  "name": "GlowCalc",
+  "short_name": "GlowCalc",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#b3d9ff",
