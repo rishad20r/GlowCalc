@@ -18,7 +18,6 @@ function playSound(type) {
   }
 }
 
-// Get elements
 const themeToggle = document.getElementById("theme-toggle");
 const sciToggle = document.getElementById("toggle-scientific");
 const clearHistory = document.getElementById("clear-history");
@@ -36,7 +35,6 @@ function updateDisplay() {
   setTimeout(() => (display.scrollLeft = display.scrollWidth), 0);
 }
 
-// Error detection helpers
 function hasInvalidLog(expr) {
   return /log\(0\)/.test(expr);
 }
@@ -57,7 +55,6 @@ function showError(msg = "Error") {
   if (navigator.vibrate) navigator.vibrate(200);
 }
 
-// Theme toggle
 themeToggle.addEventListener("click", (e) => {
   e.stopPropagation();
   document.body.classList.toggle("dark");
@@ -65,7 +62,6 @@ themeToggle.addEventListener("click", (e) => {
   playSound("theme");
 });
 
-// Scientific toggle
 sciToggle.addEventListener("click", (e) => {
   e.stopPropagation();
   const sci = document.getElementById("scientific-section");
@@ -73,7 +69,6 @@ sciToggle.addEventListener("click", (e) => {
   playSound("toggle");
 });
 
-// History toggle
 historyButton.addEventListener("click", (e) => {
   e.stopPropagation();
   historyPanel.classList.toggle("open");
@@ -86,11 +81,13 @@ clearHistory.addEventListener("click", (e) => {
   playSound("trash");
 });
 
-// Handle button click
 function handleButtonClick(value) {
-  if (errorDisplayed && value.match(/[0-9.\-]/)) {
-    expression = "";
-    display.value = "";
+  if (errorDisplayed && /^[0-9.(\-]/.test(value)) {
+    // Only clear if not inside a function
+    if (expression === "" || /^[0-9.π+\-*/^()]*$/.test(expression)) {
+      expression = "";
+      display.value = "";
+    }
     errorDisplayed = false;
   }
 
@@ -114,7 +111,11 @@ function handleButtonClick(value) {
     if (hasInvalidSqrt(expression)) return showError("Error");
 
     try {
-      let evalExpression = expression + ")".repeat(openParentheses);
+      let open = (expression.match(/\(/g) || []).length;
+      let close = (expression.match(/\)/g) || []).length;
+      let balance = open - close;
+      let evalExpression = expression + ")".repeat(Math.max(0, balance));
+
       evalExpression = evalExpression
         .replace(/sin\(/g, 'Math.sin(Math.PI/180*')
         .replace(/cos\(/g, 'Math.cos(Math.PI/180*')
@@ -125,12 +126,21 @@ function handleButtonClick(value) {
         .replace(/π/g, Math.PI)
         .replace(/\^/g, '**');
 
-      let result = eval(evalExpression);
-
-      // Catch tan(90) and similar: extremely large values
-      if (Math.abs(result) > 1e10 && evalExpression.includes("Math.tan")) {
-        return showError("Undefined");
+      // Handle tan(...) even if bracket is unclosed
+      const tanArgs = [...expression.matchAll(/tan\(([^()]*)/g)];
+      for (const match of tanArgs) {
+        const angleExpr = match[1];
+        try {
+          const angleValue = Function('"use strict";return (' + angleExpr + ')')();
+          if (Math.abs((angleValue % 180) - 90) < 1e-8) {
+            return showError("Undefined");
+          }
+        } catch {
+          return showError("Error");
+        }
       }
+
+      const result = eval(evalExpression);
 
       if (result === Infinity || isNaN(result)) {
         return showError(result === Infinity ? "∞" : "Error");
@@ -143,7 +153,7 @@ function handleButtonClick(value) {
       updateDisplay();
       playSound("equals");
 
-    } catch (err) {
+    } catch {
       showError();
     }
 
@@ -201,7 +211,6 @@ function handleButtonClick(value) {
   }
 }
 
-// Attach to all buttons
 document.querySelectorAll("button").forEach(btn => {
   if (["toggle-scientific", "clear-history", "history-button", "theme-toggle"].includes(btn.id)) return;
   btn.addEventListener("click", () => {
@@ -210,7 +219,6 @@ document.querySelectorAll("button").forEach(btn => {
   });
 });
 
-// Keyboard support
 document.addEventListener("keydown", (e) => {
   const key = e.key;
   if (key === "Enter" || key === "=") {
@@ -232,24 +240,18 @@ document.addEventListener("keydown", (e) => {
 
 updateDisplay();
 
-// Register service worker with auto-update
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('service-worker.js')
       .then(reg => {
         console.log("Service Worker registered!", reg);
-
-        // Auto-update logic
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        }
-
+        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         reg.onupdatefound = () => {
           const newWorker = reg.installing;
           newWorker.onstatechange = () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
               console.log("New update found — reloading...");
-              window.location.reload(); // Force reload for updated app
+              window.location.reload();
             }
           };
         };
