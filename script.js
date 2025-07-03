@@ -232,11 +232,28 @@ document.addEventListener("keydown", (e) => {
 
 updateDisplay();
 
-// Register service worker
+// Register service worker with auto-update
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('service-worker.js')
-      .then(reg => console.log("Service Worker registered!", reg))
+      .then(reg => {
+        console.log("Service Worker registered!", reg);
+
+        // Auto-update logic
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+
+        reg.onupdatefound = () => {
+          const newWorker = reg.installing;
+          newWorker.onstatechange = () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log("New update found — reloading...");
+              window.location.reload(); // Force reload for updated app
+            }
+          };
+        };
+      })
       .catch(err => console.error("Service Worker registration failed:", err));
   });
 }
