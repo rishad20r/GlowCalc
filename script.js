@@ -36,8 +36,26 @@ function updateDisplay() {
   setTimeout(() => (display.scrollLeft = display.scrollWidth), 0);
 }
 
-// Hide history panel initially
-historyPanel.classList.remove("open");
+// Error detection helpers
+function hasInvalidLog(expr) {
+  return /log\(0\)/.test(expr);
+}
+
+function hasInvalidSqrt(expr) {
+  const matches = [...expr.matchAll(/√\((-?\d+(\.\d+)?)\)/g)];
+  return matches.some(match => parseFloat(match[1]) < 0);
+}
+
+function showError(msg = "Error") {
+  display.value = msg;
+  playSound("error");
+  errorDisplayed = true;
+  expression = "";
+  openParentheses = 0;
+  display.classList.add("shake");
+  setTimeout(() => display.classList.remove("shake"), 400);
+  if (navigator.vibrate) navigator.vibrate(200);
+}
 
 // Theme toggle
 themeToggle.addEventListener("click", (e) => {
@@ -47,7 +65,7 @@ themeToggle.addEventListener("click", (e) => {
   playSound("theme");
 });
 
-// Toggle scientific section
+// Scientific toggle
 sciToggle.addEventListener("click", (e) => {
   e.stopPropagation();
   const sci = document.getElementById("scientific-section");
@@ -55,7 +73,7 @@ sciToggle.addEventListener("click", (e) => {
   playSound("toggle");
 });
 
-// Toggle history panel
+// History toggle
 historyButton.addEventListener("click", (e) => {
   e.stopPropagation();
   historyPanel.classList.toggle("open");
@@ -68,9 +86,9 @@ clearHistory.addEventListener("click", (e) => {
   playSound("trash");
 });
 
-// Button logic
+// Handle button click
 function handleButtonClick(value) {
-  if (errorDisplayed && value.match(/[0-9.\\-]/)) {
+  if (errorDisplayed && value.match(/[0-9.\-]/)) {
     expression = "";
     display.value = "";
     errorDisplayed = false;
@@ -81,6 +99,7 @@ function handleButtonClick(value) {
     expression += value;
     updateDisplay();
     playSound("number");
+
   } else if (["+", "-", "*", "/", "^"].includes(value)) {
     if (expression === "" && value !== "-") return;
     if (["+", "-", "*", "/", "^"].includes(expression.slice(-1)) && !(value === "-" && expression.slice(-1) !== "-")) return;
@@ -88,66 +107,52 @@ function handleButtonClick(value) {
     updateDisplay();
     playSound("operator");
 
+  } else if (value === "=") {
+    if (expression.trim() === "") return showError();
 
-} else if (value === "=") {
-  // Prevent eval on empty expression
-  if (expression.trim() === "") {
-    display.value = "Error";
-    expression = "";
-    errorDisplayed = true;
-    openParentheses = 0;
-    playSound("error");
-    return;
-  }
+    if (hasInvalidLog(expression)) return showError("Undefined");
+    if (hasInvalidSqrt(expression)) return showError("Error");
 
-  try {
-    let evalExpression = expression + ")".repeat(openParentheses);
-    evalExpression = evalExpression
-      .replace(/sin\(/g, 'Math.sin(Math.PI/180*')
-      .replace(/cos\(/g, 'Math.cos(Math.PI/180*')
-      .replace(/tan\(/g, 'Math.tan(Math.PI/180*')
-      .replace(/√\(/g, 'Math.sqrt(')
-      .replace(/log\(/g, 'Math.log10(')
-      .replace(/ln\(/g, 'Math.log(')
-      .replace(/π/g, Math.PI)
-      .replace(/\^/g, '**');
+    try {
+      let evalExpression = expression + ")".repeat(openParentheses);
+      evalExpression = evalExpression
+        .replace(/sin\(/g, 'Math.sin(Math.PI/180*')
+        .replace(/cos\(/g, 'Math.cos(Math.PI/180*')
+        .replace(/tan\(/g, 'Math.tan(Math.PI/180*')
+        .replace(/√\(/g, 'Math.sqrt(')
+        .replace(/log\(/g, 'Math.log10(')
+        .replace(/ln\(/g, 'Math.log(')
+        .replace(/π/g, Math.PI)
+        .replace(/\^/g, '**');
 
-    let result = eval(evalExpression);
+      let result = eval(evalExpression);
 
-    // Handle NaN or undefined result
-    if (isNaN(result) || result === undefined) {
-      throw new Error("Invalid calculation");
+      // Catch tan(90) and similar: extremely large values
+      if (Math.abs(result) > 1e10 && evalExpression.includes("Math.tan")) {
+        return showError("Undefined");
+      }
+
+      if (result === Infinity || isNaN(result)) {
+        return showError(result === Infinity ? "∞" : "Error");
+      }
+
+      let rounded = Math.round((Math.abs(result) < 1e-10 ? 0 : result) * 1e12) / 1e12;
+      historyList.innerHTML += `<div>${expression.replace(/\*/g, "×")} = ${rounded}</div>`;
+      expression = rounded.toString();
+      openParentheses = 0;
+      updateDisplay();
+      playSound("equals");
+
+    } catch (err) {
+      showError();
     }
 
-    let rounded = Math.round((Math.abs(result) < 1e-10 ? 0 : result) * 1e12) / 1e12;
-    historyList.innerHTML += `<div>${expression.replace(/\*/g, "×")} = ${rounded}</div>`;
-    expression = rounded.toString();
-    openParentheses = 0;
-    updateDisplay();
-    playSound("equals");
-  } catch (err) {
-  expression = "";
-  openParentheses = 0;
-  errorDisplayed = true;
-  display.value = "Error";
-  playSound("error");
-
-  // Add shake effect
-  display.classList.add("shake");
-
-  // Remove shake class after animation
-  setTimeout(() => display.classList.remove("shake"), 400);
-
-  // Vibrate if supported
-  if (navigator.vibrate) {
-    navigator.vibrate(200);  // vibrate for 200ms
-  }
-}
   } else if (value === "C") {
     expression = "";
     display.value = "";
     openParentheses = 0;
     playSound("trash");
+
   } else if (value === "←") {
     if (expression.length > 0) {
       const lastChar = expression.slice(-1);
@@ -157,11 +162,14 @@ function handleButtonClick(value) {
       updateDisplay();
       playSound("backspace");
     }
+
   } else if (value === "H") {
     historyPanel.classList.toggle("open");
     playSound("history");
+
   } else if (value === "T") {
     sciToggle.click();
+
   } else if (value === "()") {
     if (expression === "" || ["+", "-", "*", "/", "^", "("].includes(expression.slice(-1))) {
       expression += "(";
@@ -175,6 +183,7 @@ function handleButtonClick(value) {
     }
     updateDisplay();
     playSound("operator");
+
   } else {
     if (["π", "√", "log", "ln", "sin", "cos", "tan"].includes(value)) {
       if (expression && (!isNaN(expression.slice(-1)) || expression.slice(-1) === ")")) {
@@ -221,10 +230,9 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-
 updateDisplay();
 
-
+// Register service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('service-worker.js')
