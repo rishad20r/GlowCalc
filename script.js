@@ -83,7 +83,6 @@ clearHistory.addEventListener("click", (e) => {
 
 function handleButtonClick(value) {
   if (errorDisplayed && /^[0-9.(\-]/.test(value)) {
-    // Only clear if not inside a function
     if (expression === "" || /^[0-9.π+\-*/^()]*$/.test(expression)) {
       expression = "";
       display.value = "";
@@ -126,7 +125,6 @@ function handleButtonClick(value) {
         .replace(/π/g, Math.PI)
         .replace(/\^/g, '**');
 
-      // Handle tan(...) even if bracket is unclosed
       const tanArgs = [...expression.matchAll(/tan\(([^()]*)/g)];
       for (const match of tanArgs) {
         const angleExpr = match[1];
@@ -146,7 +144,13 @@ function handleButtonClick(value) {
         return showError(result === Infinity ? "∞" : "Error");
       }
 
-      let rounded = Math.round((Math.abs(result) < 1e-10 ? 0 : result) * 1e12) / 1e12;
+      let rounded;
+if (Math.abs(result % 1) < 1e-10) {
+  rounded = parseInt(result.toFixed(0));
+} else {
+  rounded = parseFloat(result.toFixed(12));
+}
+
       historyList.innerHTML += `<div>${expression.replace(/\*/g, "×")} = ${rounded}</div>`;
       expression = rounded.toString();
       openParentheses = 0;
@@ -245,7 +249,11 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(reg => {
         console.log("Service Worker registered!", reg);
-        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+        if (reg.waiting) {
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        }
+
         reg.onupdatefound = () => {
           const newWorker = reg.installing;
           newWorker.onstatechange = () => {
@@ -255,6 +263,13 @@ if ('serviceWorker' in navigator) {
             }
           };
         };
+
+        let refreshing;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (refreshing) return;
+          refreshing = true;
+          window.location.reload();
+        });
       })
       .catch(err => console.error("Service Worker registration failed:", err));
   });
